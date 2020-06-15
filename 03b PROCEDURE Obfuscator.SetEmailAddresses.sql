@@ -1,7 +1,7 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Obfuscate.EmailAddresses
+CREATE OR ALTER PROCEDURE Obfuscator.SetEmailAddresses
 	@DatabaseName SYSNAME,
 	@TableSchema SYSNAME,
 	@TableName SYSNAME,
