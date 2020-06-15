@@ -16,6 +16,14 @@ AS
 ******************************************************************************/
 BEGIN
 
+IF @Count <= 0
+BEGIN
+	SELECT CAST(NULL AS NVARCHAR(255)), CAST(NULL AS NVARCHAR(255)), CAST(NULL AS NVARCHAR(255))
+	WHERE 1 = 2;
+
+	RETURN;
+END
+
 DECLARE @Rscript NVARCHAR(MAX) = N' 
 #install.packages("stringr")
 library(generator)
