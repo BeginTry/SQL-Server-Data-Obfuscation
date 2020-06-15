@@ -1,7 +1,7 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Obfuscate.AlphaNumericData
+CREATE OR ALTER PROCEDURE Obfuscator.SetAlphaNumericData
 	@DatabaseName SYSNAME,
 	@TableSchema SYSNAME,
 	@TableName SYSNAME,
