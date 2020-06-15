@@ -1,7 +1,7 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Obfuscate.SSNs
+CREATE OR ALTER PROCEDURE Obfuscator.SetSSNs
 	@DatabaseName SYSNAME,
 	@TableSchema SYSNAME,
 	@TableName SYSNAME,
