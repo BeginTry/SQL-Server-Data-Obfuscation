@@ -1,7 +1,7 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Obfuscate.FullNames
+CREATE OR ALTER PROCEDURE Obfuscator.SetFullNames
 	@DatabaseName SYSNAME,
 	@TableSchema SYSNAME,
 	@TableName SYSNAME,
