@@ -1,7 +1,7 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Obfuscate.PhoneNumbers
+CREATE OR ALTER PROCEDURE Obfuscator.SetPhoneNumbers
 	@DatabaseName SYSNAME,
 	@TableSchema SYSNAME,
 	@TableName SYSNAME,
