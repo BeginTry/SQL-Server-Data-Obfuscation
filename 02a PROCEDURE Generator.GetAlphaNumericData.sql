@@ -85,9 +85,3 @@ WITH RESULT SETS
 );
 END
 GO
-
-/*
-DECLARE @Test AS dbo.DataEntity;
-INSERT INTO @Test SELECT TOP(200) CAST(EmployeeNo AS NVARCHAR(25)) FROM Herman.dbo.Employee WHERE EmployeeNo <> '';
-EXEC Generator.GetAlphaNumericData @Test;
-*/
