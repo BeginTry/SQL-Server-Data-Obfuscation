@@ -199,7 +199,7 @@ BEGIN
 		SELECT TOP(@TypeCount) s.ID
 		FROM #FakeNames s
 		WHERE s.IsUpdated = 0
-		ORDER BY NEWID()
+		--ORDER BY NEWID()	--not necessary just yet. On larger data sets, this results in an expensive sort operation.
 	);
 
 	FETCH NEXT FROM curTypes INTO @TypeCount, @FNameType, @LNameType, @MNameType;
