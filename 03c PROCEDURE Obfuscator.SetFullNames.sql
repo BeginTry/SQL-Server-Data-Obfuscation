@@ -113,9 +113,8 @@ END
 
 
 --	1.	Populate a #temp table with fake names--1 for every row in the source table.
-DROP TABLE IF EXISTS #FakeNames;
-CREATE TABLE #FakeNames (
-	ID BIGINT IDENTITY PRIMARY KEY,
+DROP TABLE IF EXISTS #FakeData;
+CREATE TABLE #FakeData (
 	FirstName NVARCHAR(255),
 	LastName NVARCHAR(255),
 	MiddleName NVARCHAR(255)
@@ -135,7 +134,7 @@ BEGIN
 	RETURN;
 END
 
-INSERT INTO #FakeNames EXEC Generator.GetFullNames @RowCount;
+INSERT INTO #FakeData EXEC Generator.GetFullNames @RowCount;
 
 --	2.	Get source table counts of combinations of names value types:
 --		NULL vs Zero-length string vs Single-char string vs Multi-char string.
@@ -171,7 +170,7 @@ INSERT INTO #NameValueTypes EXEC(@TSql);
 
 --	3.	Update the fake names with NULL/Zero-length strings/Single-char strings
 --		as appropriate so there is a distribution that matches the source table.
-ALTER TABLE #FakeNames ADD IsUpdated BIT NOT NULL DEFAULT (0);
+ALTER TABLE #FakeData ADD IsUpdated BIT NOT NULL DEFAULT (0);
 DECLARE @TypeCount BIGINT;
 DECLARE @FNameType TINYINT;
 DECLARE @LNameType TINYINT;
@@ -194,10 +193,10 @@ BEGIN
 
 		--Middle: empty string, middle initial (first char), entire name string, or NULL.
 		f.MiddleName = CASE WHEN @MNameType = 0 THEN '' WHEN @MNameType = 1 THEN LEFT(f.MiddleName, 1) WHEN @MNameType = 2 THEN f.MiddleName ELSE NULL END
-	FROM #FakeNames f
+	FROM #FakeData f
 	WHERE f.ID IN (
 		SELECT TOP(@TypeCount) s.ID
-		FROM #FakeNames s
+		FROM #FakeData s
 		WHERE s.IsUpdated = 0
 		--ORDER BY NEWID()	--not necessary just yet. On larger data sets, this results in an expensive sort operation.
 	);
@@ -209,7 +208,6 @@ CLOSE curTypes;
 DEALLOCATE curTypes;
 
 --	4.	Update the source table with fake names from the #temp table.
-
 IF @DisableTriggers = 1
 BEGIN
 	--Disable all triggers on source table.
@@ -230,7 +228,7 @@ SELECT @MaxLen_Mid = c.CHARACTER_MAXIMUM_LENGTH FROM #NameColumns c WHERE c.COLU
 
 --UPDATE
 SET @TSql = '
-;WITH SourceTable AS
+;WITH PermTable AS
 (
 	SELECT
 		ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VirtualID, *
@@ -240,17 +238,28 @@ SET @TSql = '
 			source.' + QUOTENAME(@LastNameColumn) + ', source.' + QUOTENAME(@FirstNameColumn) + 
 				CASE WHEN @MiddleNameColumn IS NOT NULL THEN ', source.' + QUOTENAME(@MiddleNameColumn) ELSE '' END + ' 
 		FROM ' + QUOTENAME(@DatabaseName) + '.' + QUOTENAME(@TableSchema) + '.' + QUOTENAME(@TableName) + ' source
+	) a
+),
+TempTable AS
+(
+	SELECT
+		ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VirtualID, *
+	FROM
+	(
+		SELECT TOP (SELECT COUNT(*) FROM #FakeData) 
+			f.*
+		FROM #FakeData f
 		ORDER BY NEWID()
 	) a
 )
 UPDATE st SET
-	st.' + QUOTENAME(@LastNameColumn) + ' = LEFT(fake.LastName, ' + @MaxLen_First + '),
-	st.' + QUOTENAME(@FirstNameColumn) + ' = LEFT(fake.FirstName, ' + @MaxLen_Last + ')' +
+	pt.' + QUOTENAME(@LastNameColumn) + ' = LEFT(fake.LastName, ' + @MaxLen_First + '),
+	pt.' + QUOTENAME(@FirstNameColumn) + ' = LEFT(fake.FirstName, ' + @MaxLen_Last + ')' +
 	CASE WHEN @MiddleNameColumn IS NOT NULL THEN ',
-		st.' + QUOTENAME(@MiddleNameColumn) + ' = LEFT(fake.MiddleName, ' + @MaxLen_Mid + ')' ELSE '' END + '
-FROM SourceTable st
-JOIN #FakeNames fake
-	ON fake.ID = st.VirtualID
+		pt.' + QUOTENAME(@MiddleNameColumn) + ' = LEFT(fake.MiddleName, ' + @MaxLen_Mid + ')' ELSE '' END + '
+FROM PermTable pt
+JOIN TempTable fake
+	ON fake.VirtualID = pt.VirtualID
 '
 EXEC(@TSql);
 
