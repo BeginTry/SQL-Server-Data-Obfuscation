@@ -121,7 +121,6 @@ END
 --	2.	Populate a #temp table with fake email addresses--1 for every row in the source table.
 DROP TABLE IF EXISTS #FakeData;
 CREATE TABLE #FakeData (
-	ID BIGINT IDENTITY PRIMARY KEY,
 	EmailAddress NVARCHAR(255)
 )
 
@@ -145,7 +144,6 @@ CROSS JOIN master.dbo.spt_values v3
 
 
 --	3.	Update the source table with fake email addresses from the #temp table.
-
 IF @DisableTriggers = 1
 BEGIN
 	--Disable all triggers on source table.
@@ -160,7 +158,7 @@ END
 
 --UPDATE
 SET @TSql = '
-;WITH SourceTable AS
+;WITH PermTable AS
 (
 	SELECT
 		ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VirtualID, *
@@ -169,14 +167,25 @@ SET @TSql = '
 		SELECT TOP (SELECT COUNT(*) FROM ' + QUOTENAME(@DatabaseName) + '.' + QUOTENAME(@TableSchema) + '.' + QUOTENAME(@TableName) + ') 
 			source.' + QUOTENAME(@EmailAddressColumn) + '
 		FROM ' + QUOTENAME(@DatabaseName) + '.' + QUOTENAME(@TableSchema) + '.' + QUOTENAME(@TableName) + ' source
+	) a
+),
+TempTable AS
+(
+	SELECT
+		ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VirtualID, *
+	FROM
+	(
+		SELECT TOP (SELECT COUNT(*) FROM #FakeData) 
+			f.EmailAddress
+		FROM #FakeData f
 		ORDER BY NEWID()
 	) a
 )
-UPDATE st SET
-	st.' + QUOTENAME(@EmailAddressColumn) + ' = ' + CASE WHEN @CharMaxLength = -1 THEN 'fake.EmailAddress' ELSE 'LEFT(fake.EmailAddress, ' + CAST(@CharMaxLength AS NVARCHAR(MAX)) + ')' END + '
-FROM SourceTable st
-JOIN #FakeData fake
-	ON fake.ID = st.VirtualID
+UPDATE pt SET
+	pt.' + QUOTENAME(@EmailAddressColumn) + ' = ' + CASE WHEN @CharMaxLength = -1 THEN 'fake.EmailAddress' ELSE 'LEFT(fake.EmailAddress, ' + CAST(@CharMaxLength AS NVARCHAR(MAX)) + ')' END + '
+FROM PermTable pt
+JOIN TempTable fake
+	ON fake.VirtualID = pt.VirtualID
 '
 EXEC(@TSql);
 
