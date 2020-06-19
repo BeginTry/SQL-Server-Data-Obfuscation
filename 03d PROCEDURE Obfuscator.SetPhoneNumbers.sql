@@ -120,7 +120,6 @@ END
 --	2.	Populate a #temp table with fake phone numbers--1 for every row in the source table.
 DROP TABLE IF EXISTS #FakeData;
 CREATE TABLE #FakeData (
-	ID BIGINT IDENTITY PRIMARY KEY,
 	PhoneNum NVARCHAR(255)
 )
 
@@ -148,7 +147,6 @@ WHERE PhoneNum <> '';
 
 
 --	3.	Update the source table with fake phone numbers from the #temp table.
-
 IF @DisableTriggers = 1
 BEGIN
 	--Disable all triggers on source table.
@@ -163,7 +161,7 @@ END
 
 --UPDATE
 SET @TSql = '
-;WITH SourceTable AS
+;WITH PermTable AS
 (
 	SELECT
 		ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VirtualID, *
@@ -172,11 +170,22 @@ SET @TSql = '
 		SELECT TOP (SELECT COUNT(*) FROM ' + QUOTENAME(@DatabaseName) + '.' + QUOTENAME(@TableSchema) + '.' + QUOTENAME(@TableName) + ') 
 			source.' + QUOTENAME(@PhoneNumColumn) + '
 		FROM ' + QUOTENAME(@DatabaseName) + '.' + QUOTENAME(@TableSchema) + '.' + QUOTENAME(@TableName) + ' source
+	) a
+),
+TempTable AS
+(
+	SELECT
+		ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VirtualID, *
+	FROM
+	(
+		SELECT TOP (SELECT COUNT(*) FROM #FakeData) 
+			f.SSN
+		FROM #FakeData f
 		ORDER BY NEWID()
 	) a
 )
-UPDATE st SET
-	st.' + QUOTENAME(@PhoneNumColumn) + ' = ' + 
+UPDATE pt SET
+	pt.' + QUOTENAME(@PhoneNumColumn) + ' = ' + 
 		CASE 
 			--	(xxx) yyy-zzzz
 			WHEN @CharMaxLength = -1 OR @CharMaxLength >= 14 THEN 'fake.PhoneNum' 
@@ -192,9 +201,9 @@ UPDATE st SET
 
 			ELSE 'LEFT(fake.PhoneNum, ' + CAST(@CharMaxLength AS NVARCHAR(MAX)) + ')' 
 		END + '
-FROM SourceTable st
-JOIN #FakeData fake
-	ON fake.ID = st.VirtualID
+FROM PermTable pt
+JOIN TempTable fake
+	ON fake.VirtualID = pt.VirtualID
 '
 EXEC(@TSql);
 
