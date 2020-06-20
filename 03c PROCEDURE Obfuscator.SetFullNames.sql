@@ -115,6 +115,7 @@ END
 --	1.	Populate a #temp table with fake names--1 for every row in the source table.
 DROP TABLE IF EXISTS #FakeData;
 CREATE TABLE #FakeData (
+	ID BIGINT IDENTITY PRIMARY KEY,
 	FirstName NVARCHAR(255),
 	LastName NVARCHAR(255),
 	MiddleName NVARCHAR(255)
@@ -252,7 +253,7 @@ TempTable AS
 		ORDER BY NEWID()
 	) a
 )
-UPDATE st SET
+UPDATE pt SET
 	pt.' + QUOTENAME(@LastNameColumn) + ' = LEFT(fake.LastName, ' + @MaxLen_First + '),
 	pt.' + QUOTENAME(@FirstNameColumn) + ' = LEFT(fake.FirstName, ' + @MaxLen_Last + ')' +
 	CASE WHEN @MiddleNameColumn IS NOT NULL THEN ',
