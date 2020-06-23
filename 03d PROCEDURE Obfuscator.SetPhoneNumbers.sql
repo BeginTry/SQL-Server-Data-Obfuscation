@@ -179,7 +179,7 @@ TempTable AS
 	FROM
 	(
 		SELECT TOP (SELECT COUNT(*) FROM #FakeData) 
-			f.PhoneNum
+			f.*
 		FROM #FakeData f
 		ORDER BY NEWID()
 	) a
