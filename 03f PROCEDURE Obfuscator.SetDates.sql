@@ -202,12 +202,5 @@ BEGIN
 	EXEC(@TSql);
 END
 
-UPDATE dbo.DataDiscoveryAndClassification
-SET IsObfuscated = 1
-WHERE DatabaseName = @DatabaseName
-AND SchemaName = @TableSchema
-AND TableName = @TableName
-AND ColumnName = @DateColumn
-
 END
 GO
