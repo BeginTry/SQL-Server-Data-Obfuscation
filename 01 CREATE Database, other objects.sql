@@ -24,3 +24,11 @@ CREATE TYPE dbo.DataEntity AS TABLE
     [Value] NVARCHAR(256) NULL
 );
 GO
+
+--Table type for dates.
+DROP TYPE IF EXISTS dbo.DateEntity;
+CREATE TYPE dbo.DateEntity AS TABLE
+(
+    [Value] DATE NULL
+);
+GO
