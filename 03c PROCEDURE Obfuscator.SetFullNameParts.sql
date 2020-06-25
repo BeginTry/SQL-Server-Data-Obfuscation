@@ -1,7 +1,7 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Obfuscator.SetFullNames
+CREATE OR ALTER PROCEDURE Obfuscator.SetFullNameParts
 	@DatabaseName SYSNAME,
 	@TableSchema SYSNAME,
 	@TableName SYSNAME,
@@ -10,19 +10,20 @@ CREATE OR ALTER PROCEDURE Obfuscator.SetFullNames
 	@MiddleNameColumn SYSNAME = NULL,
 	@DisableTriggers BIT = 1
 /******************************************************************************
-* Name     : Obfuscate.FullNames
+* Name     : Obfuscator.SetFullNameParts
 * Purpose  : Randomly overwrites existing name data with fake first names, last
 *		names, and middle names.
 * Inputs   : @DatabaseName, @TableSchema, @TableName - 3-part name of the table.
-*			 @FirstNameColumn - column name that holds the first name data.
-*			 @LastNameColumn - column name that holds the last name data.
-*			 @MiddleNameColumn - column name that holds the middle name data.
-*			 @DisableTriggers - self-explanatory.
+*		@FirstNameColumn - column name that holds the first name data.
+*		@LastNameColumn - column name that holds the last name data.
+*		@MiddleNameColumn - column name that holds the middle name data.
+*		@DisableTriggers - self-explanatory.
 * Outputs  : none
 * Returns  : 3-part name of the table and the number of names obfuscated.
 ******************************************************************************
 * Change History
 *	05/19/2020	DMason	Created.
+*	06/24/2020	DMason	Renamed stored proc.
 ******************************************************************************/
 AS
 BEGIN
@@ -135,7 +136,7 @@ BEGIN
 	RETURN;
 END
 
-INSERT INTO #FakeData EXEC Generator.GetFullNames @RowCount;
+INSERT INTO #FakeData EXEC Generator.GetFullNameParts @RowCount;
 
 --	2.	Get source table counts of combinations of names value types:
 --		NULL vs Zero-length string vs Single-char string vs Multi-char string.
