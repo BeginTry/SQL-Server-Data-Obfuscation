@@ -6,7 +6,7 @@ Additional details and examples are available in this blog post: <a target="_bla
 <h3>Example - Full Names</h3>
 <p>
 <pre>
-EXEC MLtools.Obfuscator.SetFullNames
+EXEC MLtools.Obfuscator.SetFullNameParts
 	@DatabaseName = 'Adventureworks',
 	@TableSchema = 'Person',
 	@TableName = 'Person',
