@@ -1,18 +1,19 @@
 USE MLtools;
 GO
 
-CREATE OR ALTER PROCEDURE Generator.GetFullNames
+CREATE OR ALTER PROCEDURE Generator.GetFullNameParts
 	@Count BIGINT
 AS
 /******************************************************************************
-* Name     : Generator.GetFullNames
-* Purpose  : Generates a table of random names data (first, last, middle).
+* Name     : Generator.GetFullNameParts
+* Purpose  : Generates a table of random 3-part names (first, last, middle).
 * Inputs   : @Count - number of names to generate.
 * Outputs  : none
 * Returns  : (See RESULT SETS definition)
 ******************************************************************************
 * Change History
 *	03/17/2020	DMason	Created.
+*	06/24/2020	DMason	Renamed stored proc.
 ******************************************************************************/
 BEGIN
 
@@ -57,5 +58,5 @@ END
 GO
 
 /*
-EXEC Generator.GetFullNames 10;
+EXEC Generator.GetFullNameParts 10;
 */
