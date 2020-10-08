@@ -18,6 +18,7 @@ CREATE OR ALTER PROCEDURE Obfuscator.SetPhoneNumbers
 ******************************************************************************
 * Change History
 *	03/19/2020	DMason	Created.
+*	10/08/2020	DMason	Fix bug involving NULL value.
 ******************************************************************************/
 AS
 BEGIN
@@ -145,6 +146,9 @@ ALTER TABLE #FakeData ADD DigitsOnly NVARCHAR(255);
 UPDATE #FakeData SET DigitsOnly = (SUBSTRING(PhoneNum, 2, 3) + SUBSTRING(PhoneNum, 7, 3) + SUBSTRING(PhoneNum, 11, 4))
 WHERE PhoneNum <> '';
 
+--Account for any "empty string" values not explicitly updated by the previous statement.
+UPDATE #FakeData SET DigitsOnly = ''
+WHERE PhoneNum = '';
 
 --	3.	Update the source table with fake phone numbers from the #temp table.
 IF @DisableTriggers = 1
